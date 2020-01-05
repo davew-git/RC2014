@@ -123,16 +123,22 @@ static void reti_event(void);
    memory fitted */
 static uint8_t mem_read0(uint16_t addr)
 {
+	uint16_t fetch_addr;
+
+	fetch_addr = addr;
+
+	if (bank512)
+		fetch_addr = addr & 0x3FFF;
+
 	if (bankenable) {
 		unsigned int bank = (addr & 0xC000) >> 14;
 		if (trace & TRACE_MEM)
-			fprintf(stderr, "R %04x[%02X] = %02X\n", addr, (unsigned int) bankreg[bank], (unsigned int) ramrom[(bankreg[bank] << 14) + (addr & 0x3FFF)]);
-		addr &= 0x3FFF;
-		return ramrom[(bankreg[bank] << 14) + addr];
+			fprintf(stderr, "R %04x[%02X] = %02X\n", addr, (unsigned int) bankreg[bank], (unsigned int) ramrom[(bankreg[bank] << 14) + fetch_addr]);
+		return ramrom[(bankreg[bank] << 14) + fetch_addr];
 	}
 	if (trace & TRACE_MEM)
-		fprintf(stderr, "R %04X = %02X\n", addr, ramrom[addr]);
-	return ramrom[addr];
+		fprintf(stderr, "R %04X = %02X\n", addr, ramrom[fetch_addr]);
+	return ramrom[fetch_addr];
 }
 
 static void mem_write0(uint16_t addr, uint8_t val)
